@@ -1,0 +1,11 @@
+if [ aglSubDirOnce TOP tsrc ] = 1 { return ; }
+
+rule ESTest {
+  local TESTNAME = $(<:B) ;
+  aglDefTest $(TESTNAME) : 1,0,0 ;
+  BUILD_SRC = [ aglBuildPackage $(<) : : $(CHK_SOURCES) ] ;
+  aglLinkLibs $(PKGTARGET) : esGLUT ;
+  aglRunTest Run_$(TESTNAME) : $(TESTNAME) ;
+}
+
+ESTest es2gears.cpp ;
