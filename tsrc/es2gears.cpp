@@ -580,8 +580,36 @@ gears_special(int special, int crap, int morecrap)
          view_rot[0] -= 5.0;
          break;
    }
+   glutLogMessage("Special: %d", special);
 }
 
+/**
+ * Handle mouse move
+ */
+static void
+gears_mouse_move(int x, int y) {
+    glutLogMessage("MouseMove: %d, %d", x, y);
+}
+
+/**
+ * Handle passive mouse move
+ */
+static void
+gears_passive_mouse_move(int x, int y) {
+    glutLogMessage("PassiveMouseMove: %d, %d", x, y);
+}
+
+/**
+ * Handle mouse button
+ */
+static void
+gears_mouse_button(int button, int state, int x, int y) {
+    glutLogMessage("MouseButton: %d, isUp: %d, %d, %d", button, state, x, y);
+}
+
+/**
+ * Update event
+ */
 static void
 gears_idle()
 {
@@ -725,6 +753,9 @@ main(int argc, char *argv[])
    glutDisplayFunc(gears_draw);
    glutKeyboardFunc(gears_keyboard);
    glutSpecialFunc(gears_special);
+   glutMotionFunc(gears_mouse_move);
+   glutPassiveMotionFunc(gears_passive_mouse_move);
+   glutMouseFunc(gears_mouse_button);
 
    // Initialize the gears
    gears_init();

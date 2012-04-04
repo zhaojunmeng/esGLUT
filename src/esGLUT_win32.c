@@ -4,9 +4,14 @@
 
 #include "esGLUT_internal.h"
 
-static HCURSOR _curArrow = NULL;
+#define REPEATED_KEYMASK	(1<<30)
+#define EXTENDED_KEYMASK	(1<<24)
+
+static HCURSOR _curArrow;
 static unsigned char _vkMap[0xFF];
 static unsigned char _isDown[0xFF];
+static unsigned long _mouseButton;
+static LPARAM _mouseMovePrevLParam;
 static void _InitOSWinResources() {
     static GLboolean _initialized = GL_FALSE;
     if (_initialized) return;
@@ -14,15 +19,18 @@ static void _InitOSWinResources() {
     _curArrow = LoadCursor(NULL,IDC_ARROW);
     memset(_isDown,0,sizeof(_isDown));
     memset(_vkMap,0,sizeof(_vkMap));
+    _mouseButton = 0;
+    _mouseMovePrevLParam = ~0;
     _vkMap[VK_UP] = GLUT_KEY_UP;
     _vkMap[VK_DOWN] = GLUT_KEY_DOWN;
     _vkMap[VK_RIGHT] = GLUT_KEY_RIGHT;
     _vkMap[VK_LEFT] = GLUT_KEY_LEFT;
-    _vkMap[VK_INSERT] = GLUT_KEY_INSERT;
-    _vkMap[VK_HOME] = GLUT_KEY_HOME;
-    _vkMap[VK_END] = GLUT_KEY_END;
     _vkMap[VK_PRIOR] = GLUT_KEY_PAGE_UP;
     _vkMap[VK_NEXT] = GLUT_KEY_PAGE_DOWN;
+    _vkMap[VK_HOME] = GLUT_KEY_HOME;
+    _vkMap[VK_END] = GLUT_KEY_END;
+    _vkMap[VK_INSERT] = GLUT_KEY_INSERT;
+    _vkMap[VK_DELETE] = GLUT_KEY_DELETE;
     _vkMap[VK_F1] = GLUT_KEY_F1;
     _vkMap[VK_F2] = GLUT_KEY_F2;
     _vkMap[VK_F3] = GLUT_KEY_F3;
@@ -35,13 +43,27 @@ static void _InitOSWinResources() {
     _vkMap[VK_F10] = GLUT_KEY_F10;
     _vkMap[VK_F11] = GLUT_KEY_F11;
     _vkMap[VK_F12] = GLUT_KEY_F12;
-    _vkMap[VK_NUMLOCK] = GLUT_KEY_NUM_LOCK;
+    /* _vkMap[VK_NUMLOCK] = GLUT_KEY_NUM_LOCK; */
     _vkMap[VK_RSHIFT] = GLUT_KEY_SHIFT_R;
     _vkMap[VK_LSHIFT] = GLUT_KEY_SHIFT_L;
     _vkMap[VK_RCONTROL] = GLUT_KEY_CTRL_R;
     _vkMap[VK_LCONTROL] = GLUT_KEY_CTRL_L;
     _vkMap[VK_RMENU] = GLUT_KEY_ALT_R;
     _vkMap[VK_LMENU] = GLUT_KEY_ALT_L;
+}
+static WPARAM _TranslateKeyWParam(WPARAM wParam, LPARAM lParam) {
+    switch (wParam) {
+    case VK_CONTROL:
+        return (lParam & EXTENDED_KEYMASK) ? VK_RCONTROL : VK_LCONTROL;
+    case VK_MENU:
+        return (lParam & EXTENDED_KEYMASK) ? VK_RMENU : VK_LMENU;
+    case VK_SHIFT:
+        // There's basically no sane robust way to differentiate the Left
+        // and Right Shift in Windows. (short of using DirectInput)
+        return VK_LSHIFT;
+    default:
+        return wParam;
+    }
 }
 
 static LRESULT WINAPI _glutWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -81,9 +103,11 @@ static LRESULT WINAPI _glutWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
         break;
     }
 
+    case WM_SYSKEYDOWN: // for VK_MENU (Alt)
     case WM_KEYDOWN: {
         POINT      point;
         GetCursorPos(&point);
+        wParam = _TranslateKeyWParam(wParam,lParam);
         _isDown[wParam] = TRUE;
         if (_vkMap[wParam]) {
             if (_callback_glutSpecialFunc) {
@@ -104,6 +128,7 @@ static LRESULT WINAPI _glutWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
         return TRUE;
     }
 
+    case WM_SYSKEYUP: // for VK_MENU (Alt)
     case WM_KEYUP: {
         POINT      point;
         GetCursorPos(&point);
@@ -126,6 +151,83 @@ static LRESULT WINAPI _glutWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
         }
         return TRUE;
     }
+
+    case WM_MOUSEMOVE: {
+        if (_mouseMovePrevLParam != lParam) {
+            int x = ((int)(short)LOWORD(lParam));
+            int y = ((int)(short)HIWORD(lParam));
+            if (_mouseButton) {
+                if (_callback_glutMotionFunc) {
+                    _callback_glutMotionFunc(x,y);
+                }
+            }
+            else {
+                if (_callback_glutPassiveMotionFunc) {
+                    _callback_glutPassiveMotionFunc(x,y);
+                }
+            }
+            _mouseMovePrevLParam = lParam;
+        }
+        break;
+    }
+
+    case WM_LBUTTONDOWN: {
+        int x = ((int)(short)LOWORD(lParam));
+        int y = ((int)(short)HIWORD(lParam));
+        _mouseButton |= (1<<GLUT_LEFT_BUTTON);
+        if (_callback_glutMouseFunc) {
+            _callback_glutMouseFunc(GLUT_LEFT_BUTTON,GLUT_DOWN,x,y);
+        }
+        break;
+    }
+    case WM_LBUTTONUP: {
+        int x = ((int)(short)LOWORD(lParam));
+        int y = ((int)(short)HIWORD(lParam));
+        _mouseButton &= ~(1<<GLUT_LEFT_BUTTON);
+        if (_callback_glutMouseFunc) {
+            _callback_glutMouseFunc(GLUT_LEFT_BUTTON,GLUT_UP,x,y);
+        }
+        break;
+    }
+
+    case WM_MBUTTONDOWN: {
+        int x = ((int)(short)LOWORD(lParam));
+        int y = ((int)(short)HIWORD(lParam));
+        _mouseButton |= (1<<GLUT_MIDDLE_BUTTON);
+        if (_callback_glutMouseFunc) {
+            _callback_glutMouseFunc(GLUT_MIDDLE_BUTTON,GLUT_DOWN,x,y);
+        }
+        break;
+    }
+    case WM_MBUTTONUP: {
+        int x = ((int)(short)LOWORD(lParam));
+        int y = ((int)(short)HIWORD(lParam));
+        _mouseButton &= (1<<GLUT_MIDDLE_BUTTON);
+        if (_callback_glutMouseFunc) {
+            _callback_glutMouseFunc(GLUT_MIDDLE_BUTTON,GLUT_UP,x,y);
+        }
+        break;
+    }
+
+    case WM_RBUTTONDOWN: {
+        int x = ((int)(short)LOWORD(lParam));
+        int y = ((int)(short)HIWORD(lParam));
+        _mouseButton |= (1<<GLUT_RIGHT_BUTTON);
+        if (_callback_glutMouseFunc) {
+            _callback_glutMouseFunc(GLUT_RIGHT_BUTTON,GLUT_DOWN,x,y);
+        }
+        break;
+    }
+    case WM_RBUTTONUP: {
+        int x = ((int)(short)LOWORD(lParam));
+        int y = ((int)(short)HIWORD(lParam));
+        _mouseButton &= (1<<GLUT_RIGHT_BUTTON);
+        if (_callback_glutMouseFunc) {
+            _callback_glutMouseFunc(GLUT_RIGHT_BUTTON,GLUT_UP,x,y);
+        }
+        break;
+    }
+
 
     default:
         break;
