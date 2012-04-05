@@ -627,6 +627,7 @@ gears_idle()
    if (angle > 3600.0)
       angle -= 3600.0;
 
+   glutPostRedisplay();
    frames++;
 
    if (tRate0 < 0.0)
