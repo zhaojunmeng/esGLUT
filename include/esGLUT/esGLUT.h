@@ -131,4 +131,6 @@ ESGLUT_EXTERN int ESGLUT_API glutGet(GLenum query);
 ESGLUT_EXTERN void ESGLUT_API glutLogMessage(const char *formatStr, ...);
 #endif
 
+ESGLUT_EXTERN void ESGLUT_API glutFullScreen();
+
 #endif // __ESGLUT_H_BEB040E8_250A_4206_A33B_306672C9B0EA__

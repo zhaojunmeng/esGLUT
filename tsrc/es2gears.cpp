@@ -579,6 +579,9 @@ gears_special(int special, int crap, int morecrap)
       case GLUT_KEY_DOWN:
          view_rot[0] -= 5.0;
          break;
+   case GLUT_KEY_F11:
+       glutFullScreen();
+       break;
    }
    glutLogMessage("Special: %d", special);
 }

@@ -207,4 +207,9 @@ void ESGLUT_API glutMainLoop(void) {
     _glutOSWinLoop();
 }
 
+void ESGLUT_API glutFullScreen() {
+    /* TODO */
+    glutLogMessage("W/glutFullScreen not implemented !");
+}
+
 #endif // #ifndef ESGLUT_OS_WEB
