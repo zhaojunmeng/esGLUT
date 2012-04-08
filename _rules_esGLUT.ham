@@ -14,11 +14,11 @@ if $(ESGLUT_PLATFORM) = unknown {
 if $(ESGLUT_PLATFORM) != web {
   switch $(LOA_LINKER) {
     case vc* :
-      ESGLUT_DIR_GLES2 = $(TK_DIR_REDIST)/bin-gles2/nt-x86/ ;
+      ESGLUT_DIR_GLES2 = $(TK_DIR_REDIST)/bin-gles2/nt-x86 ;
       LINKLIBS += $(ESGLUT_DIR_GLES2)/libEGL.lib $(ESGLUT_DIR_GLES2)/libGLESv2.lib ;
     case gcc :
       if $(AGL_OS) = NT {
-        ESGLUT_DIR_GLES2 = $(TK_DIR_REDIST)/bin-gles2/nt-x86/ ;
+        ESGLUT_DIR_GLES2 = $(TK_DIR_REDIST)/bin-gles2/nt-x86 ;
         SYSTEM_LINKLIBS += $(ESGLUT_DIR_GLES2)/libEGL.a $(ESGLUT_DIR_GLES2)/libGLESv2.a -lgdi32 ;
       }
   }
