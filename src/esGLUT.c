@@ -161,7 +161,7 @@ int ESGLUT_API glutCreateWindow(const char* title ) {
         EGL_GREEN_SIZE,     (flags & GLUT_RGBA) ? 8 : 6,
         EGL_BLUE_SIZE,      (flags & GLUT_RGBA) ? 8 : 5,
         EGL_ALPHA_SIZE,     (flags & GLUT_RGBA) ? 8 : EGL_DONT_CARE,
-        EGL_DEPTH_SIZE,     (flags & GLUT_DEPTH) ? 8 : EGL_DONT_CARE,
+        EGL_DEPTH_SIZE,     (flags & GLUT_DEPTH) ? 24 : EGL_DONT_CARE,
         EGL_STENCIL_SIZE,   (flags & GLUT_STENCIL) ? 8 : EGL_DONT_CARE,
         EGL_SAMPLE_BUFFERS, (flags & GLUT_MULTISAMPLE) ? 1 : 0,
         EGL_NONE

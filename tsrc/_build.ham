@@ -12,3 +12,4 @@ rule ESTest {
 ESTest es2gears.cpp ;
 ESTest Hello_Triangle.c ;
 ESTest Simple_Texture2D.c ;
+ESTest File_Texture2D.c ;
