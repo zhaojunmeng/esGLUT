@@ -212,4 +212,8 @@ void ESGLUT_API glutFullScreen() {
     glutLogMessage("W/glutFullScreen not implemented !");
 }
 
+void ESGLUT_API glutSetWindowTitle( const char* title ) {
+	_glutOSWinSetTitle(title);
+}
+
 #endif // #ifndef ESGLUT_OS_WEB

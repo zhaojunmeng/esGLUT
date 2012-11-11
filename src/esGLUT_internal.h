@@ -31,6 +31,8 @@ ESGLUT_EXTERN EGLSurface  _glutEGLSurface;
 ESGLUT_EXTERN GLboolean _glutOSWinCreate(const char* title);
 ESGLUT_EXTERN void _glutOSWinLoop();
 
+ESGLUT_EXTERN void _glutOSWinSetTitle(const char* title);
+
 #endif
 
 #endif // __ESGLUT_INTERNAL_H_C67988E2_76C1_4A7F_BB62_F87B1E5BF3E7__

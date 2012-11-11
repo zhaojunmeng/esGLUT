@@ -110,6 +110,8 @@ ESGLUT_EXTERN void ESGLUT_API glutPassiveMotionFunc( void (ESGLUT_CALLBACK *call
 
 ESGLUT_EXTERN void ESGLUT_API glutIdleFunc( void (ESGLUT_CALLBACK *callback)( void ) );
 
+ESGLUT_EXTERN void ESGLUT_API glutSetWindowTitle( const char* title );
+
 /*
  * GLUT API macro definitions -- the glutGet parameters
  */

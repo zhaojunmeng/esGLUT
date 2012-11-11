@@ -238,6 +238,21 @@ static LRESULT WINAPI _glutWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
     return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
 
+// The return value need to be freed.
+WCHAR* _genWideCharFromMultiByte(const char* multiByte)
+{
+	WCHAR* wideChar = NULL;
+	int bufferLength = 0;
+	bufferLength = MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, multiByte, -1, NULL, 0);
+	if(bufferLength > 0) {
+		wideChar = (WCHAR*)malloc(sizeof(WCHAR) * bufferLength);
+		if(MultiByteToWideChar(CP_ACP, 0, multiByte, -1, wideChar, bufferLength) == 0) {
+			wideChar = NULL;
+		}
+	}
+	return wideChar;
+}
+
 GLboolean _glutOSWinCreate(const char* title)
 {
     WNDCLASS wndclass = {0};
@@ -246,17 +261,8 @@ GLboolean _glutOSWinCreate(const char* title)
     HINSTANCE hInstance = GetModuleHandle(NULL);
 
 	TCHAR* windowTitle = NULL;
-	TCHAR* titleBuffer = NULL;
-	int bufferLength = 0;
 #ifdef UNICODE
-	bufferLength = MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, title, -1, NULL, 0);
-	if(bufferLength > 0) {
-		titleBuffer = (WCHAR*)malloc(sizeof(WCHAR) * bufferLength);
-		bufferLength = MultiByteToWideChar(CP_ACP, 0, title, -1, titleBuffer, bufferLength);
-		if(bufferLength > 0) {
-			windowTitle = titleBuffer;
-		}
-	}
+	windowTitle = _genWideCharFromMultiByte(title);
 #else
 	windowTitle = title;
 #endif
@@ -295,8 +301,8 @@ GLboolean _glutOSWinCreate(const char* title)
         hInstance,
         NULL);
 
-	if(titleBuffer) {
-		free(titleBuffer);
+	if(windowTitle) {
+		free(windowTitle);
 	}
 
     if (_glutHWND == NULL)
@@ -329,6 +335,22 @@ void _glutOSWinLoop()
         if (_callback_glutIdleFunc)
             _callback_glutIdleFunc();
     }
+}
+
+void _glutOSWinSetTitle(const char* title)
+{
+	TCHAR* windowTitle = NULL;
+#ifdef UNICODE
+	windowTitle = _genWideCharFromMultiByte(title);
+#else
+	windowTitle = title;
+#endif
+
+	SetWindowText(_glutHWND, windowTitle);
+
+	if(windowTitle) {
+		free(windowTitle);
+	}
 }
 
 #endif // #ifdef ESGLUT_OS_WIN32
